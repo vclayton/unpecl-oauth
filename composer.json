@@ -1,0 +1,17 @@
+{
+	"name": "vclayton/unpecl-oauth",
+	"description": "Native PHP drop-in replacement for the PECL OAuth extension",
+	"type": "library",
+	"keywords": ["pecl", "oauth"],
+	"homepage": "https://github.com/vclayton/unpecl-oauth",
+	"license": "BSD",
+	"support": {
+		"issues": "https://github.com/vclayton/unpecl-oauth/issues"
+	},
+	"require": {
+		"php": ">=5.1.0",
+		"ext-curl": "*",
+		"ext-openssl": "*",
+		"ext-hash": "*"
+	}
+}
