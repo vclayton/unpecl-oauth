@@ -4,7 +4,7 @@
 
 	<testsuites>
 		<testsuite name="Upstream PECL::OAuth Tests">
-			<directory suffix=".phpt">./pecl</directory>
+			<file>PeclTest.php</file>
 		</testsuite>
 	</testsuites>
 </phpunit>
