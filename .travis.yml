@@ -6,4 +6,5 @@ php:
   - 5.6
   - hhvm
 
+install: composer install
 script: ./runtests
