@@ -4,9 +4,13 @@
 	"type": "library",
 	"keywords": ["pecl", "oauth"],
 	"homepage": "https://github.com/vclayton/unpecl-oauth",
-	"license": "BSD",
+	"license": "MIT",
 	"support": {
 		"issues": "https://github.com/vclayton/unpecl-oauth/issues"
+	},
+	"autoload": {
+		"psr-0": {"": "src/"},
+		"files": ["src/functions.php"]
 	},
 	"require": {
 		"php": ">=5.1.0",

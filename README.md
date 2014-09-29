@@ -3,7 +3,7 @@ unpecl-oauth
 
 Native PHP drop-in replacement for the PECL OAuth extension
 
-[![Build Status](https://secure.travis-ci.org/vclayton/unpecl-oauth.png?branch=master)](http://travis-ci.org/vclayton/unpecl-oauth)
+[![Build Status](https://travis-ci.org/vclayton/unpecl-oauth.svg?branch=master)](https://travis-ci.org/vclayton/unpecl-oauth)
 
 ### Debugging Info
 There is a static OAuth::getDebugInfo() method that will return details about the most recent request. There will only be debug info if enableDebug() has been called.
@@ -16,6 +16,9 @@ There is a static OAuth::getDebugInfo() method that will return details about th
  */
 public static function getDebugInfo($key=null)
 ```
+
+### Running tests
+The unmodified upstream PECL tests are in tests/upstream. The ```runtests``` script patches and munges them into a more phpunit-friendly form, then runs them.
 
 ### TODO
 * The OAuthProvider class has no upstream compliance tests, so it is not yet implemented.

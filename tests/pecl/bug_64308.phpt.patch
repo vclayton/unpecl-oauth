@@ -1,0 +1,12 @@
+--- ../upstream/bug_64308.phpt	2014-09-29 12:36:09.858228464 -0400
++++ bug_64308.phpt	2014-09-29 14:32:38.410344335 -0400
+@@ -1,9 +1,5 @@
+ --TEST--
+ PECL oauth: Bug #64308 (Protocol and host name not lowercased when generating signature base string)
+---SKIPIF--
+-<?php # vim:ft=php
+-if (!extension_loaded('oauth')) die('skip');
+-?>
+ --FILE--
+ <?php
+ echo oauth_get_sbs('GET', 'HTTP://SimonWpt.trovebox.com/hello.json').PHP_EOL;

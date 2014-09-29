@@ -1,0 +1,11 @@
+#!/bin/bash
+BASEDIR=`dirname $0`
+cp $BASEDIR/tests/upstream/* $BASEDIR/tests/pecl
+pushd tests/pecl
+for p in *.patch; do patch < $p; done
+popd
+for t in $BASEDIR/tests/upstream/*; do
+	f=`basename $t`
+	sed -i -e "s#require '#require '$BASEDIR/tests/pecl/#" -e "s#<?php#<?php require 'vendor/autoload.php';#" $BASEDIR/tests/pecl/$f
+done
+phpunit -c tests/phpunit.xml

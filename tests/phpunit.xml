@@ -1,0 +1,10 @@
+<phpunit
+	colors="true"
+	bootstrap="../vendor/autoload.php">
+
+	<testsuites>
+		<testsuite name="Upstream PECL::OAuth Tests">
+			<directory suffix=".phpt">./pecl</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

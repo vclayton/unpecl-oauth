@@ -1,0 +1,51 @@
+--- ../upstream/oauth_standard.phpt	2014-09-29 12:36:09.858228464 -0400
++++ oauth_standard.phpt	2014-09-29 14:45:36.090357229 -0400
+@@ -17,10 +17,20 @@
+ }
+ 
+ echo "-- empty params --\n";
++$x = null;
++try {
+ $x = new OAuth;
++} catch (Exception $E) {
++echo "EXCEPTION {$E->getCode()}: {$E->getMessage()}\n";
++}
+ oauth_dump($x);
+ echo "-- one param --\n";
++$x = null;
++try {
+ $x = new OAuth('');
++} catch (Exception $E) {
++echo "EXCEPTION {$E->getCode()}: {$E->getMessage()}\n";
++}
+ oauth_dump($x);
+ echo "-- empty consumer key and secret --\n";
+ $x = null;
+@@ -29,8 +39,7 @@
+ } catch (Exception $e) {
+ 	echo "EXCEPTION {$e->getCode()}: {$e->getMessage()}\n";
+ }
+-oauth_dump($x);
+-echo "-- empty consumer secret --\n";
++oauth_dump($x);echo "-- empty consumer secret --\n";
+ try {
+ 	$x = new OAuth('1234', '');
+ } catch (Exception $e) {
+@@ -96,11 +105,15 @@
+ --EXPECTF--
+ -- empty params --
+ 
+-Warning: OAuth::__construct() expects at least 2 parameters, 0 given in %s
++Warning: Missing argument 1 for OAuth::__construct(), called in %s
++
++Warning: Missing argument 2 for OAuth::__construct(), called in %s
++EXCEPTION -1: The consumer key cannot be empty
+ NULL
+ -- one param --
+ 
+-Warning: OAuth::__construct() expects at least 2 parameters, 1 given in %s
++Warning: Missing argument 2 for OAuth::__construct(), called in %s
++EXCEPTION -1: The consumer key cannot be empty
+ NULL
+ -- empty consumer key and secret --
+ EXCEPTION -1: The consumer key cannot be empty
