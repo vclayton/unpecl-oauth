@@ -19,6 +19,7 @@ class OAuth
 	protected $oauthVersion = "1.0";
 	protected $rsaCert;
 	protected $auth_type;
+	protected $requestEngine = OAUTH_REQENGINE_CURL;
 
 	protected $lastResponse = '';
 	protected $lastResponseInfo = array();
@@ -127,6 +128,9 @@ class OAuth
 			'oauth_timestamp' => $this->timestamp ?: time(),
 			'oauth_version' => $this->oauthVersion,
 		);
+		if (!empty($this->token)) {
+			$oauthParams['oauth_token'] = $this->token;
+		}
 
 		$signature = $this->generateSignature($http_method, $protected_resource_url, $oauthParams);
 
@@ -150,7 +154,7 @@ class OAuth
 		}
 
 		$url = $protected_resource_url;
-		if (!empty($requestParams)) {
+		if (!empty($requestParams) && is_array($requestParams)) {
 			$url .= '?' . http_build_query($requestParams);
 		}
 
