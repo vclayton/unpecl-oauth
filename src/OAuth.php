@@ -265,7 +265,13 @@ class OAuth
 		$params = array(
 			'oauth_token' => $this->token,
 		);
-		$this->fetch($access_token_url, $params, $http_method);
+		if (!$verifier_token && isset($_REQUEST['oauth_verifier'])) {
+			$verifier_token = $_REQUEST['oauth_verifier'];
+		}
+		if ($verifier_token) {
+			$params['oauth_verifier'] = $verifier_token;
+		}
+		$this->fetch($access_token_url, array(), $http_method, array(), $params);
 		$response = $this->getLastResponse();
 		parse_str($response, $result);
 		return $result;
