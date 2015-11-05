@@ -39,15 +39,19 @@ if (!function_exists('oauth_get_sbs')) {
 
 		parse_str(parse_url($uri, PHP_URL_QUERY), $query_params);
 		$params = $query_params + $request_parameters;
-		ksort($params);
 
 		$params = array_diff_key($params, array('oauth_signature' => 1));
 
 		$normalizedParams = array();
 		foreach ($params as $key => $value) {
-			$normalizedParams[] = $key . '=' . $value;
+			$normalizedParams[urlencode($key)] = urlencode($value);
 		}
-		$param_str = implode('&', $normalizedParams);
+		uksort($normalizedParams, 'strnatcmp');
+		$paramParts = array();
+		foreach ($normalizedParams as $key => $value) {
+			$paramParts[] = $key . '=' . $value;
+		}
+		$param_str = implode('&', $paramParts);
 
 		return $http_method . '&' . urlencode($uriBase) . '&' . urlencode($param_str);
 	}

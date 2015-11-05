@@ -131,6 +131,7 @@ class OAuth
 		if (!empty($this->token)) {
 			$oauthParams['oauth_token'] = $this->token;
 		}
+		$oauthParams = array_merge($oauthParams, $oauth_args);
 
 		$signature = $this->generateSignature($http_method, $protected_resource_url, $oauthParams);
 
@@ -275,13 +276,12 @@ class OAuth
 	 */
 	public function getRequestToken($request_token_url, $callback_url=null, $http_method=OAUTH_HTTP_METHOD_POST)
 	{
-		$params = array(
-//				'oauth_signature_method' => $this->signature_method,
-		);
+		$params = array();
+		$oauthArgs = array();
 		if (isset($callback_url)) {
-			$params['oauth_callback'] = empty($callback_url) ? "oob" : $callback_url;
+			$oauthArgs['oauth_callback'] = empty($callback_url) ? "oob" : $callback_url;
 		}
-		$this->fetch($request_token_url, $params, $http_method);
+		$this->fetch($request_token_url, $params, $http_method, array(), $oauthArgs);
 		$response = $this->getLastResponse();
 		parse_str($response, $result);
 		return $result;
