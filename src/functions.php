@@ -44,7 +44,7 @@ if (!function_exists('oauth_get_sbs')) {
 
 		$normalizedParams = array();
 		foreach ($params as $key => $value) {
-			$normalizedParams[urlencode($key)] = urlencode($value);
+			$normalizedParams[oauth_urlencode($key)] = oauth_urlencode($value);
 		}
 		uksort($normalizedParams, 'strnatcmp');
 		$paramParts = array();
@@ -53,7 +53,7 @@ if (!function_exists('oauth_get_sbs')) {
 		}
 		$param_str = implode('&', $paramParts);
 
-		return $http_method . '&' . urlencode($uriBase) . '&' . urlencode($param_str);
+		return $http_method . '&' . oauth_urlencode($uriBase) . '&' . oauth_urlencode($param_str);
 	}
 
 	function oauth_urlencode($uri)

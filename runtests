@@ -8,4 +8,4 @@ for t in $BASEDIR/tests/upstream/*; do
 	f=`basename $t`
 	sed -i -e "s#require '#require '$BASEDIR/tests/pecl/#" -e "s#<?php#<?php require 'vendor/autoload.php';#" $BASEDIR/tests/pecl/$f
 done
-phpunit -c tests/phpunit.xml
+phpunit -c tests/phpunit.xml $@

@@ -6,5 +6,8 @@
 		<testsuite name="Upstream PECL::OAuth Tests">
 			<file>PeclTest.php</file>
 		</testsuite>
+		<testsuite name="Functions Tests">
+			<file>FunctionsTest.php</file>
+		</testsuite>
 	</testsuites>
 </phpunit>
