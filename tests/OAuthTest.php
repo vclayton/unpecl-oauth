@@ -39,7 +39,6 @@ class OAuthTest extends PHPUnit_Framework_TestCase
 			CURLINFO_HEADER_OUT    => 1,
 			CURLOPT_HTTPHEADER     => array(
 				$expectAuthHeader,
-				'Expect:',
 			),
 			CURLOPT_CUSTOMREQUEST  => 'POST',
 			CURLOPT_HEADERFUNCTION => array($oauth, '_curlReceiveHeader'),

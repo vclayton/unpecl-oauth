@@ -35,6 +35,10 @@ class PeclTest extends PHPUnit_Framework_TestCase
 		$files = glob("tests/pecl/*.phpt");
 		foreach ($files as $file) {
 			$raw = file_get_contents($file);
+			if (getenv("CURL_AGENT_ORDER")) {
+				$raw = str_replace("User-Agent: PECL-OAuth/%f%s\nHost: 127.0.0.1:12342", "Host: 127.0.0.1:12342\nUser-Agent: PECL-OAuth/%f%s", $raw);
+			}
+
 			$sections = array('FILENAME' => "'" . $file . "'", 'DIRNAME' => "'" . dirname($file) . "'");
 			$splits = preg_split('/--([A-Z]+)--\n/', $raw, 0, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
 			while (count($splits) > 1) {

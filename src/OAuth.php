@@ -45,14 +45,14 @@ class OAuth
 		return self::$lastDebugInfo;
 	}
 
-	public function __construct($consumer_key, $consumer_secret, $signature_method=OAUTH_SIG_METHOD_HMACSHA1, $auth_type=OAUTH_AUTH_TYPE_AUTHORIZATION)
+	public function __construct($consumer_key=null, $consumer_secret=null, $signature_method=OAUTH_SIG_METHOD_HMACSHA1, $auth_type=OAUTH_AUTH_TYPE_AUTHORIZATION)
 	{
 		if (empty($consumer_key)) {
 			throw new Exception("The consumer key cannot be empty", -1);
 		}
-		// if (empty($consumer_secret)) {
-		// 	throw new Exception("The consumer_secret cannot be empty");
-		// }
+		if (empty($consumer_secret)) {
+			throw new Exception("The consumer secret cannot be empty", -1);
+		}
 		$this->consumer_key = $consumer_key;
 		$this->consumer_secret = $consumer_secret;
 		$this->signature_method = $signature_method;
@@ -182,9 +182,15 @@ class OAuth
 		if (!isset($http_headers['Accept']) && $this->requestEngine != OAUTH_REQENGINE_CURL) {
 			$curlHeaders[] = "Accept:"; // Prevent curl's default 'Accept: */*'
 		}
-		$curlHeaders[] = "Expect:";
+		if ($http_method != 'POST') {
+			$curlHeaders[] = "Expect:";
+		}
 
-		$curlOptions = array(
+		$curlOptions = array();
+		if ($this->requestEngine == OAUTH_REQENGINE_CURL) {
+			$curlOptions[CURLOPT_USERAGENT] = OAUTH_USER_AGENT;
+		}
+		$curlOptions = $curlOptions + array(
 			CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_0,
 			CURLOPT_RETURNTRANSFER => 1,
 			CURLINFO_HEADER_OUT    => 1,
@@ -194,9 +200,6 @@ class OAuth
 			CURLOPT_SSL_VERIFYPEER => $this->sslChecks & OAUTH_SSLCHECK_PEER,
 			CURLOPT_SSL_VERIFYHOST => ($this->sslChecks & OAUTH_SSLCHECK_HOST) ? 2 : 0,
 		);
-		if ($this->requestEngine == OAUTH_REQENGINE_CURL) {
-			$curlOptions[CURLOPT_USERAGENT] = OAUTH_USER_AGENT;
-		}
 		if (is_string($extra_parameters)) {
 			$curlOptions[CURLOPT_POSTFIELDS] = $extra_parameters;
 		}
@@ -284,7 +287,8 @@ class OAuth
 		if ($verifier_token) {
 			$params['oauth_verifier'] = $verifier_token;
 		}
-		$this->fetch($access_token_url, array(), $http_method, array(), $params);
+		$headers = ($this->requestEngine !== OAUTH_REQENGINE_CURL) ? array('Connection' => 'close') : array();
+		$this->fetch($access_token_url, array(), $http_method, $headers, $params);
 		$response = $this->getLastResponse();
 		parse_str($response, $result);
 		return $result;
@@ -300,7 +304,8 @@ class OAuth
 		if (isset($callback_url)) {
 			$oauthArgs['oauth_callback'] = empty($callback_url) ? "oob" : $callback_url;
 		}
-		$this->fetch($request_token_url, $params, $http_method, array(), $oauthArgs);
+		$headers = ($this->requestEngine !== OAUTH_REQENGINE_CURL) ? array('Connection' => 'close') : array();
+		$this->fetch($request_token_url, $params, $http_method, $headers, $oauthArgs);
 		$response = $this->getLastResponse();
 		parse_str($response, $result);
 		return $result;

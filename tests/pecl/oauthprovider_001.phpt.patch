@@ -1,0 +1,12 @@
+--- ../upstream/oauthprovider_001.phpt	2016-03-11 11:40:18.000000000 -0500
++++ oauthprovider_001.phpt	2016-04-16 14:54:21.858435627 -0400
+@@ -1,5 +1,9 @@
+ --TEST--
+ OauthProvider Creation
++---SKIPIF--
++<?php
++if (!extension_loaded('oauth')) die('skip');
++?>
+ --FILE--
+ <?php
+ $provider = new OAuthProvider(['foo' => 'bar']);

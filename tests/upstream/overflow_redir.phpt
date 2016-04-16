@@ -1,7 +1,7 @@
 --TEST--
 OAuth Overflow in header redirect
 --SKIPIF--
-<?php 
+<?php
 
 require 'skip.inc';
 skip_if_not_constant('OAUTH_REQENGINE_CURL');
