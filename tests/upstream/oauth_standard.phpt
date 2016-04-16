@@ -17,26 +17,32 @@ function oauth_dump($v)
 }
 
 echo "-- empty params --\n";
-$x = new OAuth;
-oauth_dump($x);
+try {
+	$x = new OAuth;
+} catch (Exception $e) {
+	echo "EXCEPTION {$e->getCode()}: {$e->getMessage()}\n";
+}
+
 echo "-- one param --\n";
-$x = new OAuth('');
-oauth_dump($x);
+try {
+	$x = new OAuth('');
+} catch (Exception $e) {
+	echo "EXCEPTION {$e->getCode()}: {$e->getMessage()}\n";
+}
+
 echo "-- empty consumer key and secret --\n";
-$x = null;
 try {
 	$x = new OAuth('', '');
 } catch (Exception $e) {
 	echo "EXCEPTION {$e->getCode()}: {$e->getMessage()}\n";
 }
-oauth_dump($x);
+
 echo "-- empty consumer secret --\n";
 try {
 	$x = new OAuth('1234', '');
 } catch (Exception $e) {
 	echo "EXCEPTION {$e->getCode()}: {$e->getMessage()}\n";
 }
-oauth_dump($x);
 
 echo "-- normal constructor --\n";
 $x = new OAuth('1234', '5678');
@@ -95,18 +101,13 @@ echo "EXCEPTION {$E->getCode()}: {$E->getMessage()}\n";
 ?>
 --EXPECTF--
 -- empty params --
-
-Warning: OAuth::__construct() expects at least 2 parameters, 0 given in %s
-NULL
+EXCEPTION -1: The consumer key cannot be empty
 -- one param --
-
-Warning: OAuth::__construct() expects at least 2 parameters, 1 given in %s
-NULL
+EXCEPTION -1: The consumer key cannot be empty
 -- empty consumer key and secret --
 EXCEPTION -1: The consumer key cannot be empty
-NULL
 -- empty consumer secret --
-OAuth[debug=0,sslChecks=3,debugInfo=]
+EXCEPTION -1: The consumer secret cannot be empty
 -- normal constructor --
 OAuth[debug=0,sslChecks=3,debugInfo=]
 -- enable debug --
