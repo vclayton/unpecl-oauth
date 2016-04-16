@@ -5,6 +5,8 @@
  */
 class OAuth
 {
+	const FLAG_SORT_AUTHORIZATION = 0x01;
+
 	public $debug = false;
 	public $debugInfo = false;
 	public $sslChecks = OAUTH_SSLCHECK_BOTH;
@@ -25,6 +27,7 @@ class OAuth
 	protected $lastResponseInfo = array();
 	protected $lastHeader = '';
 	protected $lastHeaders = array();
+	protected $flags = 0;
 
 	protected static $lastDebugInfo = false;
 
@@ -82,6 +85,11 @@ class OAuth
 		$this->debug = true;
 	}
 
+	public function setFlags($flags)
+	{
+		$this->flags = $flags;
+	}
+
 	public function setAuthType($auth_type)
 	{
 		switch ($auth_type) {
@@ -114,6 +122,10 @@ class OAuth
 
 	public function fetch($protected_resource_url, $extra_parameters=array(), $http_method=OAUTH_HTTP_METHOD_GET, array $http_headers=array(), $oauth_args=array(), $flags=0)
 	{
+		$queryStr = parse_url($protected_resource_url, PHP_URL_QUERY);
+		parse_str($queryStr, $queryParams);
+		$normalizedUrl = preg_replace('/\?.*/', '', $protected_resource_url);
+
 		$signatureKeys = array(
 			'consumer_key' => $this->consumer_key,
 			'shared_secret' => $this->consumer_secret,
@@ -132,8 +144,9 @@ class OAuth
 			$oauthParams['oauth_token'] = $this->token;
 		}
 		$oauthParams = array_merge($oauthParams, $oauth_args);
+		$signParams = array_merge($queryParams, $extra_parameters, $oauthParams);
 
-		$signature = $this->generateSignature($http_method, $protected_resource_url, $oauthParams);
+		$signature = $this->generateSignature($http_method, $normalizedUrl, $signParams);
 
 		$requestParams = $extra_parameters;
 		switch ($this->auth_type) {
@@ -143,10 +156,14 @@ class OAuth
 
 			case OAUTH_AUTH_TYPE_AUTHORIZATION:
 				$auth = 'OAuth ';
+				$oauthParams['oauth_signature'] = $signature;
+				if ($this->flags & self::FLAG_SORT_AUTHORIZATION) {
+					ksort($oauthParams);
+				}
 				foreach ($oauthParams as $key => $value) {
 					$auth .= oauth_urlencode($key) . '="' . oauth_urlencode($value) . '",';
 				}
-				$http_headers['Authorization'] = $auth . 'oauth_signature="' . oauth_urlencode($signature) . '"';
+				$http_headers['Authorization'] = rtrim($auth, ',');
 				break;
 
 			case OAUTH_AUTH_TYPE_FORM:
@@ -155,7 +172,7 @@ class OAuth
 		}
 
 		$url = $protected_resource_url;
-		if (!empty($requestParams) && is_array($requestParams)) {
+		if (!empty($requestParams) && is_array($requestParams) && empty($queryParams)) {
 			$url .= '?' . http_build_query($requestParams);
 		}
 
@@ -185,11 +202,7 @@ class OAuth
 		}
 
 		$this->lastHeader = false;
-
-		$ch = curl_init($url);
-		curl_setopt_array($ch, $curlOptions);
-		$this->lastResponse = curl_exec($ch);
-		$this->lastResponseInfo = curl_getinfo($ch);
+		list($this->lastResponse, $this->lastResponseInfo) = $this->execCurl($url, $curlOptions);
 		$responseCode = $this->lastResponseInfo['http_code'];
 
 		if ($this->debug) {
@@ -219,7 +232,7 @@ class OAuth
 
 	public function generateSignature($http_method, $url, $extra_parameters=array())
 	{
-		$signatureBase = oauth_get_sbs($http_method, $url, $extra_parameters);
+		$signatureBase = $this->oauth_get_sbs($http_method, $url, $extra_parameters);
 		$secretKeys = $this->consumer_secret.'&'.$this->token_secret;
 
 		$rawSignature = null;
@@ -335,5 +348,21 @@ class OAuth
 		$this->lastHeader .= $header;
 		return strlen($header);
 	}
+
+	// Protected wrapper to allow mocking
+	protected function oauth_get_sbs($http_method, $uri, $request_parameters=null)
+	{
+		return oauth_get_sbs($http_method, $uri, $request_parameters);
+	}
+
+	protected function execCurl($url, $curlOptions)
+	{
+		$ch = curl_init($url);
+		curl_setopt_array($ch, $curlOptions);
+		$lastResponse = curl_exec($ch);
+		$lastResponseInfo = curl_getinfo($ch);
+		return array($lastResponse, $lastResponseInfo);
+	}
+
 }
 
