@@ -5,7 +5,13 @@
  */
 class OAuth
 {
-	const FLAG_SORT_AUTHORIZATION = 0x01;
+	// From Pecl
+	const FETCH_USETOKEN       = 1;
+	const FETCH_SIGONLY        = 2;
+	const FETCH_HEADONLY       = 4;
+	const OVERRIDE_HTTP_METHOD = 8;
+	// Not from Pecl
+	const FETCH_SORTAUTH       = 64;
 
 	public $debug = false;
 	public $debugInfo = false;
@@ -144,9 +150,13 @@ class OAuth
 			$oauthParams['oauth_token'] = $this->token;
 		}
 		$oauthParams = array_merge($oauthParams, $oauth_args);
-		$signParams = array_merge($queryParams, $extra_parameters, $oauthParams);
+		$signParams = array_merge($queryParams, is_array($extra_parameters) ? $extra_parameters : array(), $oauthParams);
 
-		$signature = $this->generateSignature($http_method, $normalizedUrl, $signParams);
+		$signature = $this->_generateSignature($http_method, $normalizedUrl, $signParams);
+		if ($flags & self::FETCH_SIGONLY) {
+			return $signature;
+		}
+
 
 		$requestParams = $extra_parameters;
 		switch ($this->auth_type) {
@@ -157,7 +167,7 @@ class OAuth
 			case OAUTH_AUTH_TYPE_AUTHORIZATION:
 				$auth = 'OAuth ';
 				$oauthParams['oauth_signature'] = $signature;
-				if ($this->flags & self::FLAG_SORT_AUTHORIZATION) {
+				if ($this->flags & self::FETCH_SORTAUTH) {
 					ksort($oauthParams);
 				}
 				foreach ($oauthParams as $key => $value) {
@@ -232,30 +242,9 @@ class OAuth
 	}
 
 
-
 	public function generateSignature($http_method, $url, $extra_parameters=array())
 	{
-		$signatureBase = $this->oauth_get_sbs($http_method, $url, $extra_parameters);
-		$secretKeys = $this->consumer_secret.'&'.$this->token_secret;
-
-		$rawSignature = null;
-		switch ($this->signature_method) {
-			case OAUTH_SIG_METHOD_PLAINTEXT:
-				return $secretKeys;
-			case OAUTH_SIG_METHOD_HMACSHA1:
-				$rawSignature = hash_hmac('sha1', $signatureBase, $secretKeys, TRUE);
-				break;
-			case OAUTH_SIG_METHOD_HMACSHA256:
-				$rawSignature = hash_hmac('sha256', $signatureBase, $secretKeys, TRUE);
-				break;
-			case OAUTH_SIG_METHOD_RSASHA1:
-				// @todo Exception if no OpenSSL
-				openssl_sign($signatureBase, $rawSignature, $this->rsaCert, OPENSSL_ALGO_SHA1);
-				break;
-			default:
-				throw new OAuthException("Invalid Signature Method");
-		}
-		return base64_encode($rawSignature);
+		return $this->fetch($url, $extra_parameters, $http_method, array(), array(), self::FETCH_SIGONLY);
 	}
 
 	public function getLastResponse()
@@ -352,6 +341,32 @@ class OAuth
 	{
 		$this->lastHeader .= $header;
 		return strlen($header);
+	}
+
+
+	protected function _generateSignature($http_method, $url, $signParams)
+	{
+		$signatureBase = $this->oauth_get_sbs($http_method, $url, $signParams);
+		$secretKeys = $this->consumer_secret.'&'.$this->token_secret;
+
+		$rawSignature = null;
+		switch ($this->signature_method) {
+			case OAUTH_SIG_METHOD_PLAINTEXT:
+				return $secretKeys;
+			case OAUTH_SIG_METHOD_HMACSHA1:
+				$rawSignature = hash_hmac('sha1', $signatureBase, $secretKeys, TRUE);
+				break;
+			case OAUTH_SIG_METHOD_HMACSHA256:
+				$rawSignature = hash_hmac('sha256', $signatureBase, $secretKeys, TRUE);
+				break;
+			case OAUTH_SIG_METHOD_RSASHA1:
+				// @todo Exception if no OpenSSL
+				openssl_sign($signatureBase, $rawSignature, $this->rsaCert, OPENSSL_ALGO_SHA1);
+				break;
+			default:
+				throw new OAuthException("Invalid Signature Method");
+		}
+		return base64_encode($rawSignature);
 	}
 
 	// Protected wrapper to allow mocking
