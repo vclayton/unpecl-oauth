@@ -213,7 +213,7 @@ class OAuth
 		if (is_string($extra_parameters)) {
 			$curlOptions[CURLOPT_POSTFIELDS] = $extra_parameters;
 		} elseif (is_array($extra_parameters) && !empty($extra_parameters)) {
-			$curlOptions[CURLOPT_POSTFIELDS] = http_build_query($extra_parameters, null, '&', PHP_QUERY_RFC3986);
+			$curlOptions[CURLOPT_POSTFIELDS] = $this->http_build_query($extra_parameters);
 		}
 
 		$this->lastHeader = false;
@@ -333,6 +333,20 @@ class OAuth
 		}
 		$this->oauthVersion = $version;
 		return true;
+	}
+
+	/**
+	 * Proper encoding for PHP version <= 5.3
+	 */
+	public function http_build_query($params, $separator='&')
+	{
+		$query = '';
+		$prevSeparator = '';
+		foreach ($params as $key => $value) {
+			$query .= $prevSeparator . oauth_urlencode($key) . '=' . oauth_urlencode($value);
+			$prevSeparator = $separator;
+		}
+		return $query;
 	}
 
 	/**

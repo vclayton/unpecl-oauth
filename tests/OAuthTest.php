@@ -120,6 +120,17 @@ class OAuthTest extends PHPUnit_Framework_TestCase
 		$result = $oauth->fetch($url, $body, 'PUT');
 	}
 
+	public function testHttpBuildQuery()
+	{
+		$input = array(
+			'Name' => 'Gareth Wylie',
+			'Age'  => 24,
+			'Formula' => 'a + b == 13%!',
+		);
+		$expect = 'Name=Gareth%20Wylie&Age=24&Formula=a%20%2B%20b%20%3D%3D%2013%25%21';
+		$oauth = new OAuth('foo', 'bar');
+		self::assertEquals($expect, $oauth->http_build_query($input));
+	}
 
 	// Helper to generate expected curl options
 	protected function expectedCurlOptions($oauth, $method, $headers, $body=null)
