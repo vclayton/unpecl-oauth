@@ -212,6 +212,8 @@ class OAuth
 		);
 		if (is_string($extra_parameters)) {
 			$curlOptions[CURLOPT_POSTFIELDS] = $extra_parameters;
+		} elseif (is_array($extra_parameters) && !empty($extra_parameters)) {
+			$curlOptions[CURLOPT_POSTFIELDS] = http_build_query($extra_parameters, null, '&', PHP_QUERY_RFC3986);
 		}
 
 		$this->lastHeader = false;

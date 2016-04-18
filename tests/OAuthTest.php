@@ -38,7 +38,7 @@ class OAuthTest extends PHPUnit_Framework_TestCase
 		$oauth->expects(self::once())->method('execCurl')
 			->with($fullUrl, $this->expectedCurlOptions($oauth, 'POST', array(
 				$expectAuthHeader,
-			)))
+			), 'status=Hello%20Ladies%20%2B%20Gentlemen%2C%20a%20signed%20OAuth%20request%21'))
 			->will(self::returnValue(array('OK', array('http_code' => '200'))));
 		$oauth->fetch($fullUrl, $postParams, 'POST');
 	}
