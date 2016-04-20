@@ -186,6 +186,7 @@ class OAuth
 			$url .= '?' . http_build_query($requestParams);
 		}
 
+		$curlHeaders = array();
 		foreach ($http_headers as $name => $value) {
 			$curlHeaders[] = "$name: $value";
 		}
