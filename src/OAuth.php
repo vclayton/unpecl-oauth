@@ -54,10 +54,10 @@ class OAuth
 	public function __construct($consumer_key=null, $consumer_secret=null, $signature_method=OAUTH_SIG_METHOD_HMACSHA1, $auth_type=OAUTH_AUTH_TYPE_AUTHORIZATION)
 	{
 		if (empty($consumer_key)) {
-			throw new Exception("The consumer key cannot be empty", -1);
+			throw new OAuthException("The consumer key cannot be empty", -1);
 		}
 		if (empty($consumer_secret)) {
-			throw new Exception("The consumer secret cannot be empty", -1);
+			throw new OAuthException("The consumer secret cannot be empty", -1);
 		}
 		$this->consumer_key = $consumer_key;
 		$this->consumer_secret = $consumer_secret;
@@ -106,7 +106,8 @@ class OAuth
 				$this->auth_type = $auth_type;
 				break;
 			default:
-				throw new Exception("Invalid auth type", 503);
+				// PHP Docs state this should just return false, but the PECL behavior is to throw
+				throw new OAuthException("Invalid auth type", 503);
 		}
 		return true;
 	}
@@ -126,7 +127,7 @@ class OAuth
 		$this->requestEngine = $reqengine;
 	}
 
-	public function fetch($protected_resource_url, $extra_parameters=array(), $http_method=OAUTH_HTTP_METHOD_GET, array $http_headers=array(), $oauth_args=array(), $flags=0)
+	public function fetch($protected_resource_url, $extra_parameters=array(), $http_method=null, array $http_headers=array(), $oauth_args=array(), $flags=0)
 	{
 		$queryStr = parse_url($protected_resource_url, PHP_URL_QUERY);
 		parse_str($queryStr, $queryParams);
@@ -142,7 +143,7 @@ class OAuth
 		$oauthParams = array(
 			'oauth_consumer_key' => $this->consumer_key,
 			'oauth_signature_method' => $this->signature_method,
-			'oauth_nonce' => $this->nonce ?: uniqid().'.'.time(),
+			'oauth_nonce' => $this->nonce ?: uniqid().'.'.time(), // time() doesn't buy us anything but compliance with pecl's test suite
 			'oauth_timestamp' => $this->timestamp ?: time(),
 			'oauth_version' => $this->oauthVersion,
 		);
@@ -151,6 +152,11 @@ class OAuth
 		}
 		$oauthParams = array_merge($oauthParams, $oauth_args);
 		$signParams = array_merge($queryParams, is_array($extra_parameters) ? $extra_parameters : array(), $oauthParams);
+
+		$http_method = $http_method ?: OAUTH_HTTP_METHOD_GET;
+		if ($this->auth_type == OAUTH_AUTH_TYPE_FORM && $http_method != OAUTH_HTTP_METHOD_POST) {
+			throw new OAuthException("auth type is set to HTTP FORM with a non-POST http method, use setAuthType to put OAuth parameters somewhere else in the request", 503);
+		}
 
 		$signature = $this->_generateSignature($http_method, $normalizedUrl, $signParams);
 		if ($flags & self::FETCH_SIGONLY) {
@@ -280,6 +286,7 @@ class OAuth
 			$params['oauth_verifier'] = $verifier_token;
 		}
 		$headers = ($this->requestEngine !== OAUTH_REQENGINE_CURL) ? array('Connection' => 'close') : array();
+		$http_method = $this->oauth_get_http_method($http_method);
 		$this->fetch($access_token_url, array(), $http_method, $headers, $params);
 		$response = $this->getLastResponse();
 		parse_str($response, $result);
@@ -297,6 +304,7 @@ class OAuth
 			$oauthArgs['oauth_callback'] = empty($callback_url) ? "oob" : $callback_url;
 		}
 		$headers = ($this->requestEngine !== OAUTH_REQENGINE_CURL) ? array('Connection' => 'close') : array();
+		$http_method = $this->oauth_get_http_method($http_method);
 		$this->fetch($request_token_url, $params, $http_method, $headers, $oauthArgs);
 		$response = $this->getLastResponse();
 		parse_str($response, $result);
@@ -318,7 +326,7 @@ class OAuth
 	public function setTimeout($timeout)
 	{
 		if ($timeout < 0) {
-			throw new Exception("Invalid timeout", 503);
+			throw new OAuthException("Invalid timeout", 503);
 		}
 		return true;
 	}
@@ -330,7 +338,7 @@ class OAuth
 			return null;
 		}
 		if (empty($version)) {
-			throw new Exception("Invalid version", 503);
+			throw new OAuthException("Invalid version", 503);
 		}
 		$this->oauthVersion = $version;
 		return true;
@@ -385,6 +393,20 @@ class OAuth
 		}
 		return base64_encode($rawSignature);
 	}
+
+	// Determine proper HTTP method based on AUTH_TYPE
+	protected function oauth_get_http_method($http_method=null)
+	{
+		if ($http_method) {
+			return $http_method;
+		}
+		if ($this->auth_type == OAUTH_AUTH_TYPE_FORM) {
+			return OAUTH_HTTP_METHOD_POST;
+		} else {
+			return OAUTH_HTTP_METHOD_GET;
+		}
+	}
+
 
 	// Protected wrapper to allow mocking
 	protected function oauth_get_sbs($http_method, $uri, $request_parameters=null)
