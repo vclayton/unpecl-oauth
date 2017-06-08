@@ -35,7 +35,16 @@ if (!function_exists('oauth_get_sbs')) {
 			return null;
 		}
 
-		list($uriBase) = explode('?', strtolower($uri), 2);
+		$urlParts = parse_url($uri);
+		$scheme = strtolower($urlParts['scheme']);
+		$host = strtolower($urlParts['host']);
+		$port = empty($urlParts['port']) ? '' : $urlParts['port'];
+		if ($port) {
+			$port = ($scheme == 'http' && $port == 80) || ($scheme == 'https' && $port == 443) ? '' : ':' . $port;
+		}
+		$path = empty($urlParts['path']) ? '/' : $urlParts['path'];
+
+		$uriBase = $scheme . '://' . $host . $port . $path;
 
 		parse_str(parse_url($uri, PHP_URL_QUERY), $query_params);
 		$params = $query_params + $request_parameters;

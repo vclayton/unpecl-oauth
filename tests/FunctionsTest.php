@@ -20,6 +20,20 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
 		self::assertEquals($expected, $result);
 	}
 
+	public function testGetSbs_UrlNormalization()
+	{
+		$params = array('alpha' => 'Z', 'charlie' => 'X', 'bravo' => 'A');
+		$expectParams = 'alpha%3DZ%26bravo%3DA%26charlie%3DX';
+		$result = oauth_get_sbs('GET', 'https://appcenter.intuit.com:8080/api/v1/Connection/Reconnect', array());
+		self::assertEquals('GET&https%3A%2F%2Fappcenter.intuit.com%3A8080%2Fapi%2Fv1%2FConnection%2FReconnect&', $result);
+
+		$result = oauth_get_sbs('GET', 'http://appcenter.intuit.com:80/api/v1/Connection/Reconnect', $params);
+		self::assertEquals('GET&http%3A%2F%2Fappcenter.intuit.com%2Fapi%2Fv1%2FConnection%2FReconnect&' . $expectParams, $result);
+
+		$result = oauth_get_sbs('GET', 'https://AppCenter.Intuit.com:443/api/v1/Connection/Reconnect', $params);
+		self::assertEquals('GET&https%3A%2F%2Fappcenter.intuit.com%2Fapi%2Fv1%2FConnection%2FReconnect&' . $expectParams, $result);
+	}
+
 	public function testOauthUrlencode_TwitterExamples()
 	{
 		self::assertEquals('Ladies%20%2B%20Gentlemen', oauth_urlencode('Ladies + Gentlemen'));
