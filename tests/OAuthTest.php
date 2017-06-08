@@ -21,7 +21,11 @@ class OAuthTest extends PHPUnit_Framework_TestCase
 		$consumerSecret = 'kAcSOqF21Fu85e7zjz7ZN2U4ZRhfV3WpwPAoE3Z7kBw';
 		$token = '370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb';
 		$tokenSecret = 'LswwdoUaIvS8ltyTt5jkRh4J50vUPVVHtR2YPi5kE';
-		$oauth = $this->getMock('OAuth', array('execCurl'), array($consumerKey, $consumerSecret, OAUTH_SIG_METHOD_HMACSHA1));
+		$oauth = $this->getMockBuilder('OAuth')
+			->setMethods(array('execCurl'))
+			->setConstructorArgs(array($consumerKey, $consumerSecret, OAUTH_SIG_METHOD_HMACSHA1))
+			->getMock();
+
 		$oauth->setToken($token, $tokenSecret);
 		$oauth->setNonce('kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg');
 		$oauth->setTimestamp(1318622958);
@@ -48,7 +52,10 @@ class OAuthTest extends PHPUnit_Framework_TestCase
 		$url = 'http://photos.example.net/photos';
 		$fullUrl = "{$url}?file=vacation.jpg&size=original";
 
-		$oauth = $this->getMock('OAuth', array('oauth_get_sbs', 'execCurl'), array('dpf43f3p2l4k3l03', 'kd94hf93k423kf44', OAUTH_SIG_METHOD_HMACSHA1));
+		$oauth = $this->getMockBuilder('OAuth')
+			->setMethods(array('oauth_get_sbs', 'execCurl'))
+			->setConstructorArgs(array('dpf43f3p2l4k3l03', 'kd94hf93k423kf44', OAUTH_SIG_METHOD_HMACSHA1))
+			->getMock();
 		$oauth->setToken('nnch734d00sl2jdk', 'pfkkdhi9sl3r4s00');
 		$oauth->setNonce('kllo9940pd9333jh');
 		$oauth->setTimestamp('1191242096');
@@ -96,7 +103,10 @@ class OAuthTest extends PHPUnit_Framework_TestCase
 		$consumerSecret = 'kAcSOqF21Fu85e7zjz7ZN2U4ZRhfV3WpwPAoE3Z7kBw';
 		$token = '370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb';
 		$tokenSecret = 'LswwdoUaIvS8ltyTt5jkRh4J50vUPVVHtR2YPi5kE';
-		$oauth = $this->getMock('OAuth', array('execCurl'), array($consumerKey, $consumerSecret, OAUTH_SIG_METHOD_HMACSHA1));
+		$oauth = $this->getMockBuilder('OAuth')
+			->setMethods(array('execCurl'))
+			->setConstructorArgs(array($consumerKey, $consumerSecret, OAUTH_SIG_METHOD_HMACSHA1))
+			->getMock();
 		// $oauth = new OAuth($consumerKey, $consumerSecret);
 		$oauth->setToken($token, $tokenSecret);
 		$oauth->setNonce('kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg');
